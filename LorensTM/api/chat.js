@@ -4,8 +4,14 @@ export default async function handler(req, res) {
     const apiKey = process.env.AI_SECRET_KEY;
     const { message } = req.body;
 
+    // ПРОВЕРКА КЛЮЧА: если ключа нет, мы увидим это в логах
+    if (!apiKey) {
+        console.error("ОШИБКА: API ключ AI_SECRET_KEY не найден в переменных окружения Vercel!");
+        return res.status(500).json({ error: 'Ключ не настроен в Vercel' });
+    }
+
     try {
-        // Меняем v1 на v1beta — это решит проблему "model not found"
+        // ВНИМАНИЕ: Используем v1beta и правильное имя модели
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(url, {
@@ -18,20 +24,21 @@ export default async function handler(req, res) {
 
         const data = await response.json();
 
-        // Проверка на ошибки от самого Google
+        // Если Google прислал ошибку (например, 404 или 400)
         if (data.error) {
-            return res.status(500).json({ error: data.error.message });
+            console.error("Google API Error:", data.error);
+            return res.status(data.error.code || 500).json({ error: data.error.message });
         }
 
-        // Извлекаем ответ
         if (data.candidates && data.candidates[0].content) {
             const reply = data.candidates[0].content.parts[0].text;
             return res.status(200).json({ reply });
-        } else {
-            return res.status(500).json({ error: 'ИИ прислал пустой ответ' });
         }
 
+        return res.status(500).json({ error: 'ИИ прислал пустой ответ' });
+
     } catch (err) {
+        console.error("System Error:", err);
         return res.status(500).json({ error: 'Ошибка сервера: ' + err.message });
     }
 }
