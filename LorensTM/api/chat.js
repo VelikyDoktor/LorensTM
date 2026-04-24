@@ -1,4 +1,35 @@
 export default async function handler(req, res) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+    const apiKey = process.env.AI_SECRET_KEY;
+    const { message } = req.body;
+
+    try {
+        // Используем v1 (стабильную) и точное имя модели 1.5-flash
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: message }] }]
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            console.error("Google Error Details:", data.error);
+            return res.status(500).json({ error: data.error.message });
+        }
+
+        const aiResponse = data.candidates[0].content.parts[0].text;
+        return res.status(200).json({ reply: aiResponse });
+
+    } catch (err) {
+        return res.status(500).json({ error: 'System crash: ' + err.message });
+    }
+}export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST allowed' });
 
     const apiKey = process.env.AI_SECRET_KEY;
