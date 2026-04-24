@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ИИ Ассистент</title>
+</head>
+<body>
+    <h2>Спроси ИИ о питании</h2>
+    
+    <input type="text" id="userInput" placeholder="Например: сколько калорий в яблоке?">
+    <button onclick="askAI()">Спросить</button>
+
+    <p style="font-weight: bold; color: green;" id="response"></p>
+
+    <script>
+        async function askAI() {
+            const input = document.getElementById('userInput').value;
+            const responseDiv = document.getElementById('response');
+            
+            responseDiv.innerText = "ИИ думает...";
+
+            // Обращаемся к нашей серверной функции!
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: input })
+            });
+
+            const data = await res.json();
+            
+            // Выводим ответ на экран
+            if (data.reply) {
+                responseDiv.innerText = data.reply;
+            } else {
+                responseDiv.innerText = "Произошла ошибка.";
+            }
+        }
+    </script>
+</body>
+</html>
