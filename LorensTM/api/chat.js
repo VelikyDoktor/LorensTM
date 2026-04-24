@@ -14,7 +14,7 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
                 messages: [
-                    { role: "system", content: "Ты помощник по расчету калорий и питанию. Отвечай кратко и на русском языке." },
+                    { role: "system", content: "Ты помощник по расчету калорий, составу БЖУ продуктов и блюд, питанию, ЗОЖ и спорту для похудения. Отвечай кратко и на русском языке. Добавляй в конце каждого ответа интересную цитату про здоровье" },
                     { role: "user", content: message }
                 ]
             })
