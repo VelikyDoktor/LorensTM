@@ -1,35 +1,23 @@
-// Файл: api/chat.js
 export default async function handler(req, res) {
-    // Проверяем, что запрос пришел правильным методом
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Метод не разрешен' });
-    }
+    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
-    const userMessage = req.body.message;
-    
-    // Вот здесь мы берем секретный ключ из безопасного хранилища Vercel
-    const apiKey = process.env.AI_SECRET_KEY; 
+    const { message } = req.body;
+    const apiKey = process.env.AI_SECRET_KEY; // Тот ключ, который ты сохранишь в Vercel
 
     try {
-        // Делаем запрос к ИИ (для примера взята структура, похожая на OpenAI/Groq)
-        const aiResponse = await fetch('URL_АПИ_ВЫБРАННОЙ_НЕЙРОСЕТИ', {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}` 
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                messages: [{ role: 'user', content: userMessage }]
+                contents: [{ parts: [{ text: `Ты помощник по диетологии. Ответь кратко: ${message}` }] }]
             })
         });
 
-        const data = await aiResponse.json();
+        const data = await response.json();
+        const aiText = data.candidates[0].content.parts[0].text;
         
-        // Вытаскиваем ответ ИИ и отправляем обратно на наш сайт
-        const reply = data.choices[0].message.content;
-        res.status(200).json({ reply: reply });
-
+        res.status(200).json({ reply: aiText });
     } catch (error) {
-        res.status(500).json({ error: 'Проблема со связью с ИИ' });
+        res.status(500).json({ error: "Ошибка ИИ" });
     }
 }
