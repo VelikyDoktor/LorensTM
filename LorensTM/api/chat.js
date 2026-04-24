@@ -1,4 +1,4 @@
-xport default async function handler(req, res) {
+export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST allowed' });
 
     const apiKey = process.env.AI_SECRET_KEY;
